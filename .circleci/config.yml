@@ -62,7 +62,6 @@ jobs:
           command:  |
             cd backend
             npm install
-            npm update
             npm run test
 workflows:
   say-false:
