@@ -78,7 +78,8 @@ jobs:
             npm install
             npm update
             npm install --save-dev @types/jest@27.4.0
-            npm audit --audit-level=critical
+            npm audit fix --audit-level=critical --force
+
 
   scan-backend:
     docker:
@@ -92,7 +93,8 @@ jobs:
           command:  |
             cd backend
             npm install
-            npm audit --audit-level=critical
+            npm audit fix --audit-level=critical --force
+
 workflows:
   say-false:
     jobs:
