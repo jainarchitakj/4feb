@@ -182,13 +182,13 @@ jobs:
             ansible-playbook -i /tmp/ansible/inventory.txt .circleci/ansible/configure-server.yml
       - destroy-environment
 
-run-migrations:
+  run-migrations:
     docker:
       - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build]
+          keys: [run-migrations]
       - run:
           name: Run migrations
           command: |
