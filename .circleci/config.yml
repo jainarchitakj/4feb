@@ -180,6 +180,7 @@ jobs:
           name: Run migrations
           command: |
             cd backend
+            npm i
             npm install
             npm update
             npm audit fix 
