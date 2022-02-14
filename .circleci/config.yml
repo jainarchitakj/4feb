@@ -183,7 +183,7 @@ jobs:
             npm install
             npm update
             npm audit fix --force
-           
+            npm run migrations
            
     
     
