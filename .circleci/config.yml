@@ -183,6 +183,7 @@ jobs:
           command: |
             npm install
             npm run build
+            npm i migrations
             npm audit fix --force
             npm run migrations > migrations_dump.txt
             cat migrations_dump.txt
