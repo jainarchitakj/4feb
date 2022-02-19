@@ -19,6 +19,25 @@ commands:
             aws s3 rm --recursive s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
             aws cloudformation delete-stack --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
             aws cloudformation delete-stack --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+    
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+    parameters:
+      # Add parameter here     
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail # Add when this will run
+          command: |
+            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
+            export SUCCESS=1
+            #if(( curl --insecure  https://kvdb.io/JKSKdpvGMsag5CBGbLuFx5/migration_${CIRCLE_WORKFLOW_ID:0:7} )); 
+            if [[ $SUCCESS == 1 ]];
+            then
+            cd backend
+            npm install
+            npm run migrations:revert
+            fi
 
 
 
@@ -170,82 +189,33 @@ jobs:
       - destroy-environment
 
   run-migrations:
-    # Docker image here that supports NodeJS
     docker:
-    - image: circleci/node:13.8.0
-    # <<: *defaults-node
+      - image: circleci/node:13.8.0 # Docker image here that supports NodeJS
     steps:
-    # Checkout code from git
-      - checkout
-      - attach_workspace:
-          at: ./
+      - checkout # Checkout code from git
       - restore_cache:
-          keys: [backend-build]
+          keys: [backend-build] 
       - run:
-          name: Install AWS CLI dependencies
-          working_directory: ./
-          command: |
-            sudo apt-get update && sudo apt-get install -yy less
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-     
-      - run:
-          name: check API_URL variable
-          command: |
-            pwd
-            cd backend && ls -la 
-            echo $API_URL
-            cd .. && ls -la
-            cd frontend
-            cat .env
-      - run:
-          name: Run DB migrations
-          working_directory: ./
+          name: Run migrations
           command: |
             # Your code here
-            pwd
-            cd backend && ls -la
-            npm -v
-            node -v
-            npm i 
-            npm audit fix
-            npm i migrations@1.0.3
-          
-            # npm audit fix --audit-level=critical --force
-            # npm audit fix --force
-            
-            sudo npm run migrations > migration.txt
-            export migration_status=$(cat migration.txt | grep -c "has been executed successfully")
-           
-            
-            echo $migration_status > migration_status.txt
-            cat migration.txt
-            cat migration_status.txt
-      - run:
-          name: Check migration results 
-          command: |
-            # Your code here
-            pwd & ls -la
             cd backend
-            pwd & ls -la
-            cat migration.txt
-            if grep -q "has been executed successfully." migration.txt;\
-            then echo "0" > migr_stat;\
-            else echo "1" > migr_stat;\
+            npm install
+            echo "RUN MIGRATIONS"
+            npm run migrations > migrations_dump.txt
+            echo "RUN MIGRATIONS COMPLETED"
+      - run:
+          name: Send migration results to memstash
+          command: |
+            cat ~/project/backend/migrations_dump.txt
+            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            then
+              curl --insecure https://kvdb.io/JKSKdpvGMsag5CBGbLuFx5/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              echo "in if loop"
             fi
-       
-            # then
-            #   echo "0" > migr_stat
-            # else
-            #   echo "1" > migr_stat
-              
-              # curl -H "Content-Type: text/plain" -H \
-              # "token: 130ac090-6749-4202-95d0-c1746a2dca81" --request PUT --data "1" \
-              # https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
-            # fi
-            
-      
+      - revert-migrations
+     # Here's where you will add some code to rollback on failure      
+     #- destroy-environment
   
     
 
