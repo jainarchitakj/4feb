@@ -174,7 +174,7 @@ jobs:
     steps:
       - checkout
       - add_ssh_keys:
-          fingerprints: ["1e:01:3c:b6:65:fa:e4:6c:7c:0c:53:7a:6c:6d:79:3e"]
+          fingerprints: ["ac:68:04:cc:f5:59:ab:f2:f3:23:dd:21:61:44:fc:32"]
       - attach_workspace:
           at: /tmp/ansible
       - run:
